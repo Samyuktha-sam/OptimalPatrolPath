@@ -11,6 +11,7 @@ Implemented algorithms:
 # Project Preview
 
 <img width="1364" height="718" alt="Screenshot 2026-05-14 120901" src="https://github.com/user-attachments/assets/4c12ddd6-a0c2-4597-9cfa-7b08138f8ef2" />
+<img width="472" height="484" alt="output" src="https://github.com/user-attachments/assets/798006a2-43c2-4f7e-ac93-9a7c50b1e8c2" />
 
 
 ---
