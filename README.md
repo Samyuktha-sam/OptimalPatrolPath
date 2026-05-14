@@ -15,12 +15,15 @@ Implemented algorithms:
 
 ---
 
-# Key Idea
-
-Each rectangle is converted into its 4 corner points.
-
-The shortest valid patrol boundary is the convex hull of all rectangle corners.
-
-The final perimeter of the convex hull gives the minimum patrol path length.
-
+##  Complexity & Conclusion
+- **Monotone Chain**: `O(n log n)`  
+- **Graham Scan**: `O(n log n)`  
+- Both scale similarly, but Monotone Chain shows slightly better performance on large inputs.  
+-  **Conclusion**: Monotone Chain is the preferred choice for efficiency.
 ---
+
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Samyuktha-sam/OptimalPatrolPath.git
+cd OptimalPatrolPath
