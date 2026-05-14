@@ -1,0 +1,205 @@
+#include <iomanip>
+#include <iostream>
+#include <vector>
+#include <string>
+
+#include "../include/point.hpp"
+#include "utils.hpp"
+#include "monotone_chain.cpp"
+#include "graham_scan.cpp"
+
+using namespace geometry;
+
+struct Rectangle
+{
+    double x1, y1, x2, y2;
+};
+
+void clearScreen()
+{
+    // Basic ANSI escape code to clear screen
+    std::cout << "\033[2J\033[H";
+}
+
+void printHeader(const std::vector<Rectangle> &rectangles, double perimeter)
+{
+    clearScreen();
+    std::cout << "========================================\n";
+    std::cout << "       Optimal Patrol Path TUI          \n";
+    std::cout << "========================================\n\n";
+
+    std::cout << "Rectangles Added: " << rectangles.size() << "\n";
+    if (!rectangles.empty())
+    {
+        std::cout << "Current Rectangles:\n";
+        for (size_t i = 0; i < rectangles.size(); ++i)
+        {
+            std::cout << "  [" << i + 1 << "] (" << rectangles[i].x1 << ", " << rectangles[i].y1
+                      << ") to (" << rectangles[i].x2 << ", " << rectangles[i].y2 << ")\n";
+        }
+    }
+
+    std::cout << "\n----------------------------------------\n";
+    std::cout << "Minimum Path Length: " << std::fixed << std::setprecision(6) << perimeter << "\n";
+    std::cout << "----------------------------------------\n\n";
+}
+
+double calculatePerimeter(const std::vector<Rectangle> &rectangles, int algorithm = 0)
+{
+    if (rectangles.empty())
+        return 0.0;
+
+    std::vector<Point> allPoints;
+    for (const auto &rect : rectangles)
+    {
+        std::vector<Point> points = axisAlignedRectangle(rect.x1, rect.y1, rect.x2, rect.y2);
+        allPoints.insert(allPoints.end(), points.begin(), points.end());
+    }
+
+    std::vector<Point> hull;
+    if (algorithm == 0)
+    {
+        hull = monotoneChainHull(allPoints);
+    }
+    else
+    {
+        hull = grahamScanHull(allPoints);
+    }
+    return polygonPerimeter(hull);
+}
+
+int main()
+{
+    std::vector<Rectangle> rectangles;
+    double currentPerimeter = 0.0;
+    int selectedAlgorithm = 0; // 0 = Monotone Chain, 1 = Graham Scan
+    std::string choice;
+
+    while (true)
+    {
+        printHeader(rectangles, currentPerimeter);
+
+        std::cout << "Options:\n";
+        std::cout << "  1. Add Rectangle\n";
+        std::cout << "  2. Add Multiple Rectangles (Batch)\n";
+        std::cout << "  3. Select Algorithm\n";
+        std::cout << "  4. Clear All Rectangles\n";
+        std::cout << "  5. Exit\n";
+        std::cout << "\nCurrent Algorithm: " << (selectedAlgorithm == 0 ? "Monotone Chain" : "Graham Scan") << "\n";
+        std::cout << "\nChoose an option: ";
+
+        if (!(std::cin >> choice))
+            break;
+
+        if (choice == "1")
+        {
+            double x1, y1, x2, y2;
+            std::cout << "\nEnter coordinates (x1 y1 x2 y2): ";
+            if (std::cin >> x1 >> y1 >> x2 >> y2)
+            {
+                rectangles.push_back({x1, y1, x2, y2});
+                currentPerimeter = calculatePerimeter(rectangles, selectedAlgorithm);
+            }
+            else
+            {
+                std::cin.clear();
+                std::string dummy;
+                std::getline(std::cin, dummy);
+                std::cout << "\nInvalid input. Press Enter to continue...";
+                std::getline(std::cin, dummy);
+            }
+        }
+        else if (choice == "2")
+        {
+            int n;
+            std::cout << "\nEnter number of rectangles: ";
+            if (std::cin >> n && n > 0)
+            {
+                std::cout << "Enter " << n << " rectangles (x1 y1 x2 y2 for each):\n";
+                bool validInput = true;
+                for (int i = 0; i < n; ++i)
+                {
+                    double x1, y1, x2, y2;
+                    std::cout << "  Rectangle " << (i + 1) << ": ";
+                    if (std::cin >> x1 >> y1 >> x2 >> y2)
+                    {
+                        rectangles.push_back({x1, y1, x2, y2});
+                    }
+                    else
+                    {
+                        std::cout << "Invalid input at rectangle " << (i + 1) << "\n";
+                        validInput = false;
+                        std::cin.clear();
+                        std::string dummy;
+                        std::getline(std::cin, dummy);
+                        break;
+                    }
+                }
+                if (validInput)
+                {
+                    currentPerimeter = calculatePerimeter(rectangles, selectedAlgorithm);
+                    std::cout << "\nAdded " << n << " rectangles successfully!\n";
+                }
+            }
+            else
+            {
+                std::cin.clear();
+                std::string dummy;
+                std::getline(std::cin, dummy);
+                std::cout << "\nInvalid input. Press Enter to continue...";
+                std::getline(std::cin, dummy);
+            }
+        }
+        else if (choice == "3")
+        {
+            std::cout << "\nSelect Algorithm:\n";
+            std::cout << "  0. Monotone Chain (faster)\n";
+            std::cout << "  1. Graham Scan\n";
+            std::cout << "Choose (0 or 1): ";
+            std::string algoChoice;
+            if (std::cin >> algoChoice)
+            {
+                if (algoChoice == "0")
+                {
+                    selectedAlgorithm = 0;
+                    std::cout << "Switched to Monotone Chain\n";
+                }
+                else if (algoChoice == "1")
+                {
+                    selectedAlgorithm = 1;
+                    std::cout << "Switched to Graham Scan\n";
+                }
+                else
+                {
+                    std::cout << "Invalid choice\n";
+                }
+                if (!rectangles.empty())
+                {
+                    currentPerimeter = calculatePerimeter(rectangles, selectedAlgorithm);
+                }
+            }
+            std::cout << "Press Enter to continue...";
+            std::cin.ignore(1000, '\n');
+            std::string dummy;
+            std::getline(std::cin, dummy);
+        }
+        else if (choice == "4")
+        {
+            rectangles.clear();
+            currentPerimeter = 0.0;
+        }
+        else if (choice == "5")
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "\nInvalid choice. Press Enter to continue...";
+            std::cin.ignore(1000, '\n');
+            std::getline(std::cin, choice);
+        }
+    }
+
+    std::cout << "\nGoodbye!\n";
+    return 0;
+}

@@ -11,9 +11,6 @@ using namespace geometry;
 
 int main()
 {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-
     int rectangleCount;
     std::cout << "Enter number of rectangles: ";
     std::cin >> rectangleCount;
